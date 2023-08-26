@@ -1,7 +1,7 @@
+pip install pandas geopandas
+
 # Streamlitライブラリをインポート
 import streamlit as st
-
-pip install pandas geopandas
 
 import geopandas as gpd
 import pandas as pd
