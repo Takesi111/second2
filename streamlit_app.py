@@ -1,17 +1,31 @@
 # Streamlitライブラリをインポート
 import streamlit as st
 
+import streamlit as st
 import pandas as pd
 
-# メッシュマップデータのCSVファイルを読み込む（仮のデータ形式）
-mesh_map_data = pd.read_csv('mesh_map_data.csv')
+# ファイルアップロード部分
+st.title('メッシュマップからデータを抽出するアプリ')
+file = st.file_uploader("メッシュマップデータのCSVファイルをアップロードしてください", type=["csv"])
 
-# 人口データを抽出する
-population_data = mesh_map_data[['MESH_ID', 'POPULATION_COLUMN']]
+if file is not None:
+    mesh_map_data = pd.read_csv(file)
 
-# 緯度経度データを抽出する
-lat_lon_data = mesh_map_data[['MESH_ID', 'LATITUDE_COLUMN', 'LONGITUDE_COLUMN']]
+    st.subheader("抽出したいデータを選択してください")
+    selected_data = st.multiselect("データを選択", mesh_map_data.columns)
 
-# 抽出したデータをCSVファイルに保存する
-population_data.to_csv('population_data.csv', index=False)
-lat_lon_data.to_csv('lat_lon_data.csv', index=False)
+    if selected_data:
+        selected_data_df = mesh_map_data[selected_data]
+        st.dataframe(selected_data_df)
+
+        # 人口データ抽出
+        if '人口データ' in selected_data:
+            population_data = selected_data_df[['MESH_ID', '人口データ']]
+            st.write("人口データ:")
+            st.dataframe(population_data)
+
+        # 緯度経度データ抽出
+        if '緯度データ' in selected_data and '経度データ' in selected_data:
+            lat_lon_data = selected_data_df[['MESH_ID', '緯度データ', '経度データ']]
+            st.write("緯度経度データ:")
+            st.dataframe(lat_lon_data)
