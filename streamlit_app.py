@@ -1,38 +1,37 @@
 import streamlit as st
-import cv2
-import numpy as np
-import csv
+import geopandas as gpd
+from shapely.geometry import Polygon
+
+# 市町村の境界データを読み込む
+boundaries = gpd.read_file('path_to_boundaries_shapefile.shp')
 
 def main():
-    st.title("人口メッシュマップデータ抽出アプリ")
+    st.title("市町村の人口重心座標計算アプリ")
+    
+    # 市町村名を入力
+    city_name = st.text_input("市町村名を入力してください:")
+    
+    if st.button("計算"):
+        # 指定した市町村のデータを取得
+        city_data = boundaries[boundaries['市町村名'] == city_name]
 
-    uploaded_file = st.file_uploader("人口メッシュマップ画像をアップロード", type=["png", "jpg", "jpeg"])
+        if not city_data.empty:
+            # 市町村の人口データを取得（仮にランダムな数値としています）
+            population = city_data['人口'].values[0]
 
-    if uploaded_file is not None:
-        st.image(uploaded_file, caption="アップロードされた画像", use_column_width=True)
-        st.write("画像を処理してデータを抽出中...")
+            # 市町村の境界を取得
+            city_boundary = city_data['geometry'].values[0]
 
-        # 画像データの読み込み
-        image = cv2.imdecode(np.fromstring(uploaded_file.read(), np.uint8), 1)
+            # 市町村の人口重心を計算
+            population_center = city_boundary.centroid
 
-        # 画像処理およびデータ抽出処理を実装
-        # 以下に適切な画像処理コードを挿入
-
-        # 座標と人口データのリストを想定
-        coordinates = [(latitude1, longitude1, population1),
-                       (latitude2, longitude2, population2),
-                       # ... 他の座標と人口データ ...
-                      ]
-
-        # CSV ファイルにデータを書き込む
-        csv_file = "extracted_data.csv"
-        with open(csv_file, "w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(["Latitude", "Longitude", "Population"])  # ヘッダー行
-            for lat, lon, pop in coordinates:
-                writer.writerow([lat, lon, pop])
-
-        st.write("データを抽出し、ファイルに保存しました。")
+            # 結果を表示
+            st.write(f"{city_name}の人口重心座標:")
+            st.write(f"緯度: {population_center.y[0]}")
+            st.write(f"経度: {population_center.x[0]}")
+            st.write(f"人口: {population}")
+        else:
+            st.write(f"{city_name}はデータが見つかりませんでした。")
 
 if __name__ == "__main__":
     main()
